@@ -1,0 +1,11 @@
+[[bin]]
+name = "mvns"
+path = "mvns.rs"
+
+[dependencies]
+time = "0.1.25"
+
+[package]
+authors = ["Anonymous"]
+name = "mvns"
+version = "0.1.0"
