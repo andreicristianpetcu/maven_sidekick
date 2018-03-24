@@ -14,5 +14,15 @@
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build"
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug tests",
+            "program": "${workspaceRoot}/target/debug/mvns-ee7a6be2da18d5f8",
+            "env": {},
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "buildtests"
+        },
     ]
 }

@@ -16,7 +16,7 @@
         },
         {
             "type": "shell",
-            "label": "test",
+            "label": "buildtests",
             "command": "cargo",
             "args": [
                 "build",
