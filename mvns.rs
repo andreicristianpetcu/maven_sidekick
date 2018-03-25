@@ -101,12 +101,37 @@ mod tests {
         assert_eq!("org.apache.camel", project.parent_group_id.unwrap());
     }
 
+    // #[test]
+    // #[ignore]
+    // fn it_gets_dependencies() {
+    //     let project = get_project("test_data/pom.xml");
+    //     let first_dependency = project.dependencies.item(0);
+
+    //     assert_eq!(23, project.dependencies.len());
+    //     assert_eq!("org.apache.camel", first_dependency.artifact_id);
+    //     assert_eq!("spi-annotations", first_dependency.group_id);
+    // }
+
     #[test]
     fn to_string_prints_xml_path() {
-        assert_eq!(
-            "/project/artifactId",
-            to_string(&vec!["project".to_string(), "artifactId".to_string()])
-        );
+        let vec = &vec!["project".to_string(), "artifactId".to_string()];
+        let vec_to_string = to_string(vec);
+        assert_eq!( "/project/artifactId", vec_to_string);
     }
+
+    // #[test]
+    // #[ignore]
+    // fn it_gets_all_pom_files_from_cwd() {
+    //     let pom_files = get_all_pom_files_from_cwd();
+    //     assert_eq!(1, pom_files.len());
+    //     assert!(pom_files.item(0).ends_with("test_data/pom.xml"));
+    // }
+
+    // #[test]
+    // #[ignore]
+    // fn it_gets_pom_file_from_artifact() {
+    //     let pom_file = get_pom_file_from_artifact("org.apache.camel:camel-core");
+    //     assert!(pom_file.ends_with("test_data/pom.xml"));
+    // }
 
 }
