@@ -13,13 +13,17 @@ use std::io::BufReader;
 
 use xml::reader::{EventReader, XmlEvent};
 
+pub struct MavenProject {
+    artifact_id: String
+}
+
 fn indent(size: usize) -> String {
     const INDENT: &'static str = "    ";
     (0..size).map(|_| INDENT)
              .fold(String::with_capacity(size*INDENT.len()), |r, s| r + s)
 }
 
-pub fn get_project_artifact_id(file_path: &str) -> String {
+pub fn get_project_artifact_id(file_path: &str) -> MavenProject {
     print!("{0}", file_path.to_string());
 
     let file = File::open(file_path).unwrap();
@@ -45,7 +49,7 @@ pub fn get_project_artifact_id(file_path: &str) -> String {
             Ok(XmlEvent::Characters(data)) => {
                 println!("{}={}", indent(depth), data);
                 if depth == 2 && "artifactId".eq_ignore_ascii_case(&current_tag) {
-                    return data
+                    return MavenProject { artifact_id: data }
                 }
             }
             Err(e) => {
@@ -55,11 +59,11 @@ pub fn get_project_artifact_id(file_path: &str) -> String {
             _ => {}
         }
     }
-    String::from("test")
+    MavenProject { artifact_id: String::from("test") }
 }
 
 fn main() {
-    println!("{}", get_project_artifact_id("test_data/pom.xml"));
+    println!("{}", get_project_artifact_id("test_data/pom.xml").artifact_id);
 }
 
 
@@ -69,7 +73,7 @@ mod tests {
 
     #[test]
     fn it_gets_project_artifact_id() {
-        assert_eq!("camel-core", get_project_artifact_id("test_data/pom.xml"));
+        assert_eq!("camel-core", get_project_artifact_id("test_data/pom.xml").artifact_id);
     }
 
 }
