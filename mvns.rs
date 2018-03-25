@@ -18,12 +18,12 @@ pub struct MavenProject {
 }
 
 fn indent(size: usize) -> String {
-    const INDENT: &'static str = "    ";
-    (0..size).map(|_| INDENT)
-             .fold(String::with_capacity(size*INDENT.len()), |r, s| r + s)
+    let indent: &str = "    ";
+    (0..size).map(|_| indent)
+             .fold(String::with_capacity(size*indent.len()), |r, s| r + s)
 }
 
-pub fn get_project_artifact_id(file_path: &str) -> MavenProject {
+pub fn get_project(file_path: &str) -> MavenProject {
     print!("{0}", file_path.to_string());
 
     let file = File::open(file_path).unwrap();
@@ -63,7 +63,7 @@ pub fn get_project_artifact_id(file_path: &str) -> MavenProject {
 }
 
 fn main() {
-    println!("{}", get_project_artifact_id("test_data/pom.xml").artifact_id);
+    println!("{}", get_project("test_data/pom.xml").artifact_id);
 }
 
 
@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn it_gets_project_artifact_id() {
-        assert_eq!("camel-core", get_project_artifact_id("test_data/pom.xml").artifact_id);
+        assert_eq!("camel-core", get_project("test_data/pom.xml").artifact_id);
     }
 
 }
