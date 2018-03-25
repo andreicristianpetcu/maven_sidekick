@@ -145,11 +145,8 @@ mod tests {
     #[ignore]
     fn it_gets_dependencies_from_plugin_section() {
         let project = get_project("test_data/pom.xml");
-        let first_dependency = project.dependencies.get(0).unwrap();
 
         assert_eq!(23, project.dependencies.len());
-        assert_eq!("org.apache.camel", first_dependency.artifact_id);
-        assert_eq!("spi-annotations", first_dependency.group_id);
     }
 
     #[test]
