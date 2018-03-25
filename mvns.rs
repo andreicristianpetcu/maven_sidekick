@@ -18,9 +18,9 @@ pub struct MavenProject {
 }
 
 fn indent(size: usize) -> String {
-    let indent: &str = "    ";
-    (0..size).map(|_| indent)
-             .fold(String::with_capacity(size*indent.len()), |r, s| r + s)
+    const INDENT: &str = "    ";
+    (0..size).map(|_| INDENT)
+             .fold(String::with_capacity(size*INDENT.len()), |r, s| r + s)
 }
 
 pub fn get_project(file_path: &str) -> MavenProject {
