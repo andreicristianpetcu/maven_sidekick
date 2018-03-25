@@ -19,16 +19,6 @@ struct MavenProject {
     parent_group_id: Option<String>,
 }
 
-impl MavenProject {
-    fn new(artifact_id: String, group_id: String) -> Self {
-        MavenProject {
-            artifact_id,
-            group_id,
-            parent_group_id: None::<String>,
-        }
-    }
-}
-
 fn get_project(file_path: &str) -> MavenProject {
     print!("{0}", file_path.to_string());
 
@@ -48,14 +38,12 @@ fn get_project(file_path: &str) -> MavenProject {
             Ok(XmlEvent::EndElement { .. }) => {
                 tag_hierarchy.pop();
             }
-            Ok(XmlEvent::Characters(data)) => {
-                match to_string(&tag_hierarchy).as_ref() {
-                    "/project/artifactId" => artifact_id = data.to_string(),
-                    "/project/groupId" => group_id = data.to_string(),
-                    "/project/parent/groupId" => parent_group_id = Option::from(data.to_string()),
-                    _ => { },
-                }
-            }
+            Ok(XmlEvent::Characters(data)) => match to_string(&tag_hierarchy).as_ref() {
+                "/project/artifactId" => artifact_id = data.to_string(),
+                "/project/groupId" => group_id = data.to_string(),
+                "/project/parent/groupId" => parent_group_id = Option::from(data.to_string()),
+                _ => {}
+            },
             Err(e) => {
                 println!("Error: {}", e);
                 break;
@@ -63,14 +51,18 @@ fn get_project(file_path: &str) -> MavenProject {
             _ => {}
         }
     }
-    MavenProject { artifact_id, group_id, parent_group_id }
+    MavenProject {
+        artifact_id,
+        group_id,
+        parent_group_id,
+    }
 }
 
-fn to_string(vector: &Vec<String>) -> String {
+fn to_string(vector: &[String]) -> String {
     let mut result: String = "".to_string();
     vector.into_iter().for_each(|item| {
         result.push_str("/");
-        result.push_str(&item);
+        result.push_str(item);
     });
     result
 }
