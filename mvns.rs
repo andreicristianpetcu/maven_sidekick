@@ -36,21 +36,20 @@ pub fn get_project(file_path: &str) -> MavenProject {
     let file = BufReader::new(file);
 
     let parser = EventReader::new(file);
-    let mut depth = 0;
     let mut artifact_id: String = "".to_string();
     let mut group_id: String = "".to_string();
-    let mut current_tag: String = "".to_string();
+    let mut tag_hierarchy : Vec<String> = Vec::new();
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, .. }) => {
-                current_tag = name.local_name.to_string();
-                depth += 1;
+                tag_hierarchy.push(name.local_name.to_string());
             }
             Ok(XmlEvent::EndElement { .. }) => {
-                depth -= 1;
+                tag_hierarchy.pop();
             }
             Ok(XmlEvent::Characters(data)) => {
-                if depth == 2 {
+                if tag_hierarchy.len() == 2 {
+                    let mut current_tag: String = tag_hierarchy.last().unwrap().to_string();
                     match current_tag.as_ref() {
                         "artifactId" => artifact_id = data.to_string(),
                         "groupId" => group_id = data.to_string(),
