@@ -6,12 +6,12 @@
 // hashbang.
 extern crate time;
 
-pub fn add_two(a: i32) -> i32 {
-    a + 2
+pub fn get_project_artifact_id(file_path: &str) -> String {
+    print!("{0}", file_path.to_string());
+    String::from("test")
 }
 
 fn main() {
-    println!("2 plus 2 is {}", add_two(2));
     println!("{}", time::now().rfc822z());
 }
 
@@ -21,7 +21,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_adds_two() {
-        assert_eq!(5, add_two(3));
+    #[ignore]
+    fn it_gets_project_artifact_id() {
+        assert_eq!("camel-core", get_project_artifact_id("test_data/pom.xml"));
     }
+
 }
