@@ -18,7 +18,18 @@ struct MavenProject {
     artifact_id: String,
     group_id: String,
     parent_group_id: Option<String>,
-    dependencies: Vec<MavenProject>
+    dependencies: Vec<MavenProject>,
+}
+
+impl MavenProject {
+    fn new(artifact_id: &str, group_id: &str) -> Self {
+        MavenProject {
+            artifact_id: artifact_id.to_string(),
+            group_id: group_id.to_string(),
+            parent_group_id: None::<String>,
+            dependencies: Vec::new(),
+        }
+    }
 }
 
 fn get_project(file_path: &str) -> MavenProject {
@@ -30,7 +41,10 @@ fn get_project(file_path: &str) -> MavenProject {
     let parser = EventReader::new(file);
     let mut artifact_id: String = "".to_string();
     let mut group_id: String = "".to_string();
+    let mut dependency_artifact_id: String = "".to_string();
+    let mut dependency_group_id: String = "".to_string();
     let mut parent_group_id: Option<String> = Option::None;
+    let mut dependencies: Vec<MavenProject> = Vec::new();
     let mut tag_hierarchy: Vec<String> = Vec::new();
     for e in parser {
         match e {
@@ -38,12 +52,25 @@ fn get_project(file_path: &str) -> MavenProject {
                 tag_hierarchy.push(name.local_name.to_string());
             }
             Ok(XmlEvent::EndElement { .. }) => {
+                let hierarchy_as_str = to_string(&tag_hierarchy);
+                if "/project/dependencies/dependency".eq_ignore_ascii_case(&hierarchy_as_str) {
+                    dependencies.push(MavenProject::new(
+                        &dependency_artifact_id,
+                        &dependency_group_id,
+                    ))
+                }
                 tag_hierarchy.pop();
             }
             Ok(XmlEvent::Characters(data)) => match to_string(&tag_hierarchy).as_ref() {
                 "/project/artifactId" => artifact_id = data.to_string(),
                 "/project/groupId" => group_id = data.to_string(),
                 "/project/parent/groupId" => parent_group_id = Option::from(data.to_string()),
+                "/project/dependencies/dependency/artifactId" => {
+                    dependency_artifact_id = data.to_string()
+                }
+                "/project/dependencies/dependency/groupId" => {
+                    dependency_group_id = data.to_string()
+                }
                 _ => {}
             },
             Err(e) => {
@@ -57,7 +84,7 @@ fn get_project(file_path: &str) -> MavenProject {
         artifact_id,
         group_id,
         parent_group_id,
-        dependencies: Vec::new()
+        dependencies,
     }
 }
 
@@ -105,8 +132,18 @@ mod tests {
     }
 
     #[test]
+    fn it_gets_dependencies_from_dependency_section() {
+        let project = get_project("test_data/pom.xml");
+        let first_dependency = project.dependencies.get(0).unwrap();
+
+        assert!(project.dependencies.len() >= 15);
+        assert_eq!("spi-annotations", first_dependency.artifact_id);
+        assert_eq!("org.apache.camel", first_dependency.group_id);
+    }
+
+    #[test]
     #[ignore]
-    fn it_gets_dependencies() {
+    fn it_gets_dependencies_from_plugin_section() {
         let project = get_project("test_data/pom.xml");
         let first_dependency = project.dependencies.get(0).unwrap();
 
@@ -119,7 +156,7 @@ mod tests {
     fn to_string_prints_xml_path() {
         let vec = &vec!["project".to_string(), "artifactId".to_string()];
         let vec_to_string = to_string(vec);
-        assert_eq!( "/project/artifactId", vec_to_string);
+        assert_eq!("/project/artifactId", vec_to_string);
     }
 
     // #[test]
