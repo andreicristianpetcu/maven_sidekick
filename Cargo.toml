@@ -4,6 +4,7 @@ path = "mvns.rs"
 
 [dependencies]
 time = "0.1.25"
+xml-rs = "0.7"
 
 [package]
 authors = ["Anonymous"]
