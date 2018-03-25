@@ -13,10 +13,12 @@ use std::io::BufReader;
 
 use xml::reader::{EventReader, XmlEvent};
 
+#[allow(dead_code)]
 struct MavenProject {
     artifact_id: String,
     group_id: String,
     parent_group_id: Option<String>,
+    dependencies: Vec<MavenProject>
 }
 
 fn get_project(file_path: &str) -> MavenProject {
@@ -55,6 +57,7 @@ fn get_project(file_path: &str) -> MavenProject {
         artifact_id,
         group_id,
         parent_group_id,
+        dependencies: Vec::new()
     }
 }
 
@@ -101,16 +104,16 @@ mod tests {
         assert_eq!("org.apache.camel", project.parent_group_id.unwrap());
     }
 
-    // #[test]
-    // #[ignore]
-    // fn it_gets_dependencies() {
-    //     let project = get_project("test_data/pom.xml");
-    //     let first_dependency = project.dependencies.item(0);
+    #[test]
+    #[ignore]
+    fn it_gets_dependencies() {
+        let project = get_project("test_data/pom.xml");
+        let first_dependency = project.dependencies.get(0).unwrap();
 
-    //     assert_eq!(23, project.dependencies.len());
-    //     assert_eq!("org.apache.camel", first_dependency.artifact_id);
-    //     assert_eq!("spi-annotations", first_dependency.group_id);
-    // }
+        assert_eq!(23, project.dependencies.len());
+        assert_eq!("org.apache.camel", first_dependency.artifact_id);
+        assert_eq!("spi-annotations", first_dependency.group_id);
+    }
 
     #[test]
     fn to_string_prints_xml_path() {
