@@ -27,15 +27,26 @@ pub fn get_project_artifact_id(file_path: &str) -> String {
 
     let parser = EventReader::new(file);
     let mut depth = 0;
+    // let mut artifact_id :String;
+    let mut current_tag :String = "".to_string();
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, .. }) => {
                 println!("{}+{}", indent(depth), name);
+                current_tag = name.local_name.to_string();
                 depth += 1;
             }
-            Ok(XmlEvent::EndElement { name }) => {
+            Ok(XmlEvent::EndElement { .. }) => {
                 depth -= 1;
-                println!("{}-{}", indent(depth), name);
+            }
+            Ok(XmlEvent::CData(data)) => {
+                println!("{}={}", indent(depth), data );
+            }
+            Ok(XmlEvent::Characters(data)) => {
+                println!("{}={}", indent(depth), data);
+                if depth == 2 && "artifactId".eq_ignore_ascii_case(&current_tag) {
+                    return data
+                }
             }
             Err(e) => {
                 println!("Error: {}", e);
@@ -57,7 +68,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn it_gets_project_artifact_id() {
         assert_eq!("camel-core", get_project_artifact_id("test_data/pom.xml"));
     }
