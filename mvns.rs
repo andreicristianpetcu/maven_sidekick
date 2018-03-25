@@ -14,13 +14,8 @@ use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
 
 pub struct MavenProject {
-    artifact_id: String
-}
-
-fn indent(size: usize) -> String {
-    const INDENT: &str = "    ";
-    (0..size).map(|_| INDENT)
-             .fold(String::with_capacity(size*INDENT.len()), |r, s| r + s)
+    artifact_id: String,
+    group_id: String
 }
 
 pub fn get_project(file_path: &str) -> MavenProject {
@@ -31,25 +26,24 @@ pub fn get_project(file_path: &str) -> MavenProject {
 
     let parser = EventReader::new(file);
     let mut depth = 0;
-    // let mut artifact_id :String;
+    let mut artifact_id :String = "".to_string();
+    let mut group_id :String = "".to_string();
     let mut current_tag :String = "".to_string();
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, .. }) => {
-                println!("{}+{}", indent(depth), name);
                 current_tag = name.local_name.to_string();
                 depth += 1;
             }
             Ok(XmlEvent::EndElement { .. }) => {
                 depth -= 1;
             }
-            Ok(XmlEvent::CData(data)) => {
-                println!("{}={}", indent(depth), data );
-            }
             Ok(XmlEvent::Characters(data)) => {
-                println!("{}={}", indent(depth), data);
                 if depth == 2 && "artifactId".eq_ignore_ascii_case(&current_tag) {
-                    return MavenProject { artifact_id: data }
+                    artifact_id = data.to_string()
+                }
+                if depth == 2 && "groupId".eq_ignore_ascii_case(&current_tag) {
+                    group_id = data.to_string()
                 }
             }
             Err(e) => {
@@ -59,11 +53,12 @@ pub fn get_project(file_path: &str) -> MavenProject {
             _ => {}
         }
     }
-    MavenProject { artifact_id: String::from("test") }
+    MavenProject { artifact_id, group_id }
 }
 
 fn main() {
-    println!("{}", get_project("test_data/pom.xml").artifact_id);
+    let project = get_project("test_data/pom.xml");
+    println!("group id is {} and artifact id is {}", project.artifact_id, project.group_id);
 }
 
 
@@ -73,7 +68,14 @@ mod tests {
 
     #[test]
     fn it_gets_project_artifact_id() {
-        assert_eq!("camel-core", get_project("test_data/pom.xml").artifact_id);
+        let project = get_project("test_data/pom.xml");
+        assert_eq!("camel-core", project.artifact_id);
+    }
+
+    #[test]
+    fn it_gets_project_group_id() {
+        let project = get_project("test_data/pom.xml");
+        assert_eq!("org.apache.camel", project.group_id);
     }
 
 }

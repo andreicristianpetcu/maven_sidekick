@@ -29,6 +29,7 @@
     <relativePath>../parent</relativePath>
   </parent>
 
+  <groupId>org.apache.camel</groupId>
   <artifactId>camel-core</artifactId>
   <packaging>jar</packaging>
   <name>Camel :: Core</name>
