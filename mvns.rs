@@ -160,8 +160,9 @@ mod tests {
     // #[ignore]
     // fn it_gets_all_pom_files_from_cwd() {
     //     let pom_files = get_all_pom_files_from_cwd();
-    //     assert_eq!(1, pom_files.len());
+    //     assert_eq!(2, pom_files.len());
     //     assert!(pom_files.item(0).ends_with("test_data/pom.xml"));
+    //     assert!(pom_files.item(1).ends_with("test_data/apache-camel/pom.xml"));
     // }
 
     // #[test]
