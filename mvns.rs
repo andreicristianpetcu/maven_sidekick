@@ -1,17 +1,19 @@
 #!/usr/bin/env run-cargo-script
-// cargo-deps: time="0.1.25", xml-rs = "0.7", xml5ever = "0.1.3", tendril = "0.1.3"
+// cargo-deps: time="0.1.25", xml-rs = "0.7", xml5ever = "0.1.3", tendril = "0.1.3", walkdir = "2"
 // You can also leave off the version number, in which case, it's assumed
 // to be "*".  Also, the `cargo-deps` comment *must* be a single-line
 // comment, and it *must* be the first thing in the file, after the
 // hashbang.
 extern crate time;
-
+extern crate walkdir;
 extern crate xml;
 
+use std::path::Path;
 use std::fs::File;
 use std::io::BufReader;
-
 use xml::reader::{EventReader, XmlEvent};
+use walkdir::WalkDir;
+use std::env;
 
 #[allow(dead_code)]
 struct MavenProject {
@@ -97,6 +99,20 @@ fn to_string(vector: &[String]) -> String {
     result
 }
 
+fn get_all_pom_files_from_cwd() -> Vec<String> {
+    let mut pom_files: Vec<String> = Vec::new();
+    let cwd = env::current_dir().unwrap();
+    for entry in WalkDir::new(cwd).into_iter().filter_map(|e| e.ok()) {
+        let entry_path: &Path = entry.path();
+        if entry_path.is_file() && entry_path.to_str().unwrap().ends_with("/pom.xml") {
+            println!("{}", entry_path.to_str().unwrap().to_string());
+            pom_files.push(entry_path.to_str().unwrap().to_string());
+        }
+    }
+    pom_files.sort();
+    pom_files
+}
+
 fn main() {
     let project = get_project("test_data/pom.xml");
     println!(
@@ -107,6 +123,7 @@ fn main() {
             .parent_group_id
             .unwrap_or_else(|| "none".to_string())
     );
+    get_all_pom_files_from_cwd();
 }
 
 #[cfg(test)]
@@ -142,28 +159,19 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    fn it_gets_dependencies_from_plugin_section() {
-        let project = get_project("test_data/pom.xml");
-
-        assert_eq!(23, project.dependencies.len());
-    }
-
-    #[test]
     fn to_string_prints_xml_path() {
         let vec = &vec!["project".to_string(), "artifactId".to_string()];
         let vec_to_string = to_string(vec);
         assert_eq!("/project/artifactId", vec_to_string);
     }
 
-    // #[test]
-    // #[ignore]
-    // fn it_gets_all_pom_files_from_cwd() {
-    //     let pom_files = get_all_pom_files_from_cwd();
-    //     assert_eq!(2, pom_files.len());
-    //     assert!(pom_files.item(0).ends_with("test_data/pom.xml"));
-    //     assert!(pom_files.item(1).ends_with("test_data/apache-camel/pom.xml"));
-    // }
+    #[test]
+    fn it_gets_all_pom_files_from_cwd() {
+        let pom_files = get_all_pom_files_from_cwd();
+        assert_eq!(2, pom_files.len());
+        assert!(pom_files[0].ends_with("test_data/apache-camel/pom.xml"));
+        assert!(pom_files[1].ends_with("test_data/pom.xml"));
+    }
 
     // #[test]
     // #[ignore]
