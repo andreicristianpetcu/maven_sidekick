@@ -113,7 +113,7 @@ fn get_all_pom_files_from_cwd() -> Vec<String> {
     pom_files
 }
 
-fn get_pom_file_from_artifact(project_to_find: String) -> Result<String, String> {
+fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
     let pom_files = get_all_pom_files_from_cwd();
     for pom_file in pom_files {
         let project = get_project(&pom_file);
@@ -135,7 +135,7 @@ fn main() {
             .parent_group_id
             .unwrap_or_else(|| "none".to_string())
     );
-    get_pom_file_from_artifact("org.apache.camel:camel-core".to_string()).unwrap();
+    get_pom_file_from_artifact("org.apache.camel:camel-core").unwrap();
 }
 
 #[cfg(test)]
@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn it_gets_pom_file_from_artifact() {
-        let pom_file = get_pom_file_from_artifact("org.apache.camel:camel-core".to_string()).unwrap();
+        let pom_file = get_pom_file_from_artifact("org.apache.camel:camel-core").unwrap();
         assert!(pom_file.ends_with("test_data/pom.xml"));
     }
 
