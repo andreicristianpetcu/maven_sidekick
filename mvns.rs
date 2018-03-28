@@ -113,6 +113,18 @@ fn get_all_pom_files_from_cwd() -> Vec<String> {
     pom_files
 }
 
+fn get_pom_file_from_artifact(project_to_find: String) -> Result<String, String> {
+    let pom_files = get_all_pom_files_from_cwd();
+    for pom_file in pom_files {
+        let project = get_project(&pom_file);
+        let project_full_name = format!("{}:{}", project.group_id.to_string(), &project.artifact_id.to_string());
+        if project_full_name.eq(&project_to_find) {
+            return Ok(pom_file)
+        }
+    }
+    Err("Project not found".to_string())
+}
+
 fn main() {
     let project = get_project("test_data/pom.xml");
     println!(
@@ -123,7 +135,7 @@ fn main() {
             .parent_group_id
             .unwrap_or_else(|| "none".to_string())
     );
-    get_all_pom_files_from_cwd();
+    get_pom_file_from_artifact("org.apache.camel:camel-core".to_string()).unwrap();
 }
 
 #[cfg(test)]
@@ -173,11 +185,10 @@ mod tests {
         assert!(pom_files[1].ends_with("test_data/pom.xml"));
     }
 
-    // #[test]
-    // #[ignore]
-    // fn it_gets_pom_file_from_artifact() {
-    //     let pom_file = get_pom_file_from_artifact("org.apache.camel:camel-core");
-    //     assert!(pom_file.ends_with("test_data/pom.xml"));
-    // }
+    #[test]
+    fn it_gets_pom_file_from_artifact() {
+        let pom_file = get_pom_file_from_artifact("org.apache.camel:camel-core".to_string()).unwrap();
+        assert!(pom_file.ends_with("test_data/pom.xml"));
+    }
 
 }
