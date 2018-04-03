@@ -117,12 +117,30 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
     let pom_files = get_all_pom_files_from_cwd();
     for pom_file in pom_files {
         let project = get_project(&pom_file);
-        let project_full_name = format!("{}:{}", project.group_id.to_string(), &project.artifact_id.to_string());
+        let project_full_name = format!(
+            "{}:{}",
+            project.group_id.to_string(),
+            &project.artifact_id.to_string()
+        );
         if project_full_name.eq(&project_to_find) {
-            return Ok(pom_file)
+            return Ok(pom_file);
         }
     }
     Err("Project not found".to_string())
+}
+
+#[allow(dead_code)]
+fn gets_nested_dependencies(project: MavenProject) -> String {
+    let mut dependencies: String = String::new();
+    dependencies.push_str(project.group_id.as_str());
+    dependencies.push_str(":");
+    dependencies.push_str(project.artifact_id.as_str());
+    for dependency in project.dependencies {
+        dependencies.push_str(",");
+        dependencies.push_str(&gets_nested_dependencies(dependency));
+    }
+
+    dependencies
 }
 
 fn main() {
@@ -189,6 +207,29 @@ mod tests {
     fn it_gets_pom_file_from_artifact() {
         let pom_file = get_pom_file_from_artifact("org.apache.camel:camel-core").unwrap();
         assert!(pom_file.ends_with("test_data/pom.xml"));
+    }
+
+    #[test]
+    fn it_gets_nested_dependencies() {
+        let child1 = MavenProject {
+            artifact_id: "switzerland".to_string(),
+            group_id: "com.geography".to_string(),
+            parent_group_id: None::<String>,
+            dependencies: Vec::new(),
+        };
+        let parent = MavenProject {
+            artifact_id: "europe".to_string(),
+            group_id: "com.geography".to_string(),
+            parent_group_id: None::<String>,
+            dependencies: vec![child1],
+        };
+
+        let dependencies = gets_nested_dependencies(parent);
+
+        assert_eq!(
+            "com.geography:europe,com.geography:switzerland",
+            dependencies
+        );
     }
 
 }
