@@ -104,8 +104,6 @@ fn get_all_pom_files_from_cwd() -> Vec<String> {
     let cwd = env::current_dir().unwrap();
     for entry in WalkDir::new(cwd).into_iter().filter_map(|e| e.ok()) {
         let entry_path: &Path = entry.path();
-        // you can deduplicate entry_path.to_str().unwrap() into a single let binding.
-        // With those taken out it should look a lot cleaner.
         let path = entry_path.to_str().unwrap();
         if entry_path.is_file() && path.ends_with("/pom.xml") {
             println!("{}", path.to_string());
