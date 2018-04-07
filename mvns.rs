@@ -41,17 +41,17 @@ fn get_project(file_path: &str) -> MavenProject {
     let file = BufReader::new(file);
 
     let parser = EventReader::new(file);
-    let mut artifact_id: String = "".to_string();
-    let mut group_id: String = "".to_string();
-    let mut dependency_artifact_id: String = "".to_string();
-    let mut dependency_group_id: String = "".to_string();
+    let mut artifact_id: String = String::new();
+    let mut group_id: String = String::new();
+    let mut dependency_artifact_id: String = String::new();
+    let mut dependency_group_id: String = String::new();
     let mut parent_group_id: Option<String> = Option::None;
     let mut dependencies: Vec<MavenProject> = Vec::new();
     let mut tag_hierarchy: Vec<String> = Vec::new();
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, .. }) => {
-                tag_hierarchy.push(name.local_name.to_string());
+                tag_hierarchy.push(name.local_name);
             }
             Ok(XmlEvent::EndElement { .. }) => {
                 let hierarchy_as_str = to_string(&tag_hierarchy);
@@ -64,14 +64,14 @@ fn get_project(file_path: &str) -> MavenProject {
                 tag_hierarchy.pop();
             }
             Ok(XmlEvent::Characters(data)) => match to_string(&tag_hierarchy).as_ref() {
-                "/project/artifactId" => artifact_id = data.to_string(),
-                "/project/groupId" => group_id = data.to_string(),
-                "/project/parent/groupId" => parent_group_id = Option::from(data.to_string()),
+                "/project/artifactId" => artifact_id = data,
+                "/project/groupId" => group_id = data,
+                "/project/parent/groupId" => parent_group_id = Option::from(data),
                 "/project/dependencies/dependency/artifactId" => {
-                    dependency_artifact_id = data.to_string()
+                    dependency_artifact_id = data
                 }
                 "/project/dependencies/dependency/groupId" => {
-                    dependency_group_id = data.to_string()
+                    dependency_group_id = data
                 }
                 _ => {}
             },
@@ -91,7 +91,7 @@ fn get_project(file_path: &str) -> MavenProject {
 }
 
 fn to_string(vector: &[String]) -> String {
-    let mut result: String = "".to_string();
+    let mut result: String = String::new();
     vector.into_iter().for_each(|item| {
         result.push_str("/");
         result.push_str(item);
@@ -104,9 +104,12 @@ fn get_all_pom_files_from_cwd() -> Vec<String> {
     let cwd = env::current_dir().unwrap();
     for entry in WalkDir::new(cwd).into_iter().filter_map(|e| e.ok()) {
         let entry_path: &Path = entry.path();
-        if entry_path.is_file() && entry_path.to_str().unwrap().ends_with("/pom.xml") {
-            println!("{}", entry_path.to_str().unwrap().to_string());
-            pom_files.push(entry_path.to_str().unwrap().to_string());
+        // you can deduplicate entry_path.to_str().unwrap() into a single let binding.
+        // With those taken out it should look a lot cleaner.
+        let path = entry_path.to_str().unwrap();
+        if entry_path.is_file() && path.ends_with("/pom.xml") {
+            println!("{}", path.to_string());
+            pom_files.push(path.to_string());
         }
     }
     pom_files.sort();
@@ -119,8 +122,8 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
         let project = get_project(&pom_file);
         let project_full_name = format!(
             "{}:{}",
-            project.group_id.to_string(),
-            &project.artifact_id.to_string()
+            project.group_id,
+            &project.artifact_id
         );
         if project_full_name.eq(&project_to_find) {
             return Ok(pom_file);
