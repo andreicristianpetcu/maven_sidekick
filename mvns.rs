@@ -24,10 +24,10 @@ struct MavenProject {
 }
 
 impl MavenProject {
-    fn new(artifact_id: &str, group_id: &str) -> Self {
+    fn new(artifact_id: String, group_id: String) -> Self {
         MavenProject {
-            artifact_id: artifact_id.to_string(),
-            group_id: group_id.to_string(),
+            artifact_id,
+            group_id,
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
         }
@@ -35,7 +35,7 @@ impl MavenProject {
 }
 
 fn get_project(file_path: &str) -> MavenProject {
-    print!("{0}", file_path.to_string());
+    print!("{0}", file_path);
 
     let file = File::open(file_path).unwrap();
     let file = BufReader::new(file);
@@ -57,8 +57,8 @@ fn get_project(file_path: &str) -> MavenProject {
                 let hierarchy_as_str = to_string(&tag_hierarchy);
                 if "/project/dependencies/dependency".eq_ignore_ascii_case(&hierarchy_as_str) {
                     dependencies.push(MavenProject::new(
-                        &dependency_artifact_id,
-                        &dependency_group_id,
+                        dependency_artifact_id.clone(),
+                        dependency_group_id.clone(),
                     ))
                 }
                 tag_hierarchy.pop();
@@ -106,7 +106,7 @@ fn get_all_pom_files_from_cwd() -> Vec<String> {
         let entry_path: &Path = entry.path();
         let path = entry_path.to_str().unwrap();
         if entry_path.is_file() && path.ends_with("/pom.xml") {
-            println!("{}", path.to_string());
+            println!("{}", path);
             pom_files.push(path.to_string());
         }
     }
@@ -127,7 +127,7 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
             return Ok(pom_file);
         }
     }
-    Err("Project not found".to_string())
+    Err(String::from("Project not found"))
 }
 
 #[allow(dead_code)]
@@ -152,7 +152,7 @@ fn main() {
         project.group_id,
         project
             .parent_group_id
-            .unwrap_or_else(|| "none".to_string())
+            .unwrap_or_else(|| String::from("none"))
     );
     get_pom_file_from_artifact("org.apache.camel:camel-core").unwrap();
 }
@@ -191,7 +191,7 @@ mod tests {
 
     #[test]
     fn to_string_prints_xml_path() {
-        let vec = &vec!["project".to_string(), "artifactId".to_string()];
+        let vec = &vec![String::from("project"), String::from("artifactId")];
         let vec_to_string = to_string(vec);
         assert_eq!("/project/artifactId", vec_to_string);
     }
@@ -213,14 +213,14 @@ mod tests {
     #[test]
     fn it_gets_nested_dependencies() {
         let child1 = MavenProject {
-            artifact_id: "switzerland".to_string(),
-            group_id: "com.geography".to_string(),
+            artifact_id: String::from("switzerland"),
+            group_id: String::from("com.geography"),
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
         };
         let parent = MavenProject {
-            artifact_id: "europe".to_string(),
-            group_id: "com.geography".to_string(),
+            artifact_id: String::from("europe"),
+            group_id: String::from("com.geography"),
             parent_group_id: None::<String>,
             dependencies: vec![child1],
         };
