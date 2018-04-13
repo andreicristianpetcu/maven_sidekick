@@ -19,6 +19,7 @@ struct MavenProject {
     artifact_id: String,
     group_id: String,
     parent_group_id: Option<String>,
+    version: Option<String>,
     dependencies: Vec<MavenProject>,
 }
 
@@ -29,7 +30,12 @@ impl MavenProject {
             group_id,
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
+            version: None::<String>
         }
+    }
+
+    fn is_same_project_version(&self) -> bool {
+        return false;
     }
 }
 
@@ -86,6 +92,7 @@ fn get_project(file_path: &str) -> MavenProject {
         group_id,
         parent_group_id,
         dependencies,
+        version: None::<String>
     }
 }
 
@@ -208,12 +215,14 @@ mod tests {
             group_id: String::from("com.geography"),
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
+            version: None::<String>,
         };
         let parent = MavenProject {
             artifact_id: String::from("europe"),
             group_id: String::from("com.geography"),
             parent_group_id: None::<String>,
             dependencies: vec![child1],
+            version: None::<String>,
         };
 
         let dependencies = gets_nested_dependencies(parent);
@@ -224,4 +233,17 @@ mod tests {
         );
     }
 
+    #[test]
+    #[ignore]
+    fn it_checks_same_project_version() {
+        let project = MavenProject {
+            artifact_id: String::new(),
+            group_id: String::new(),
+            parent_group_id: None::<String>,
+            dependencies: Vec::new(),
+            version: Some(String::from("${project.version}"))
+        };
+
+        assert_eq!(true, project.is_same_project_version());
+    }
 }
