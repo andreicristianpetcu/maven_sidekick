@@ -21,11 +21,11 @@ cargo install cargo-script
 and execute it:
 
 ```bash
-./mvns.rs
+./mvnsk.rs
 ```
 
 You can run the script tests like this:
 
 ```bash
-cargo script --test mvns.rs
+cargo script --test mvnsk.rs
 ```

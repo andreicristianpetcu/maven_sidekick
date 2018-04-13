@@ -144,16 +144,8 @@ fn gets_nested_dependencies(project: MavenProject) -> String {
 }
 
 fn main() {
-    let project = get_project("test_data/pom.xml");
-    println!(
-        "group id is {} and artifact id is {} and the parent group id is {}",
-        project.artifact_id,
-        project.group_id,
-        project
-            .parent_group_id
-            .unwrap_or_else(|| String::from("none"))
-    );
-    get_pom_file_from_artifact("org.apache.camel:camel-core").unwrap();
+    let string = get_pom_file_from_artifact("com.connectis.connectis:broker-eh").unwrap();
+    print!("{}", string);
 }
 
 #[cfg(test)]
