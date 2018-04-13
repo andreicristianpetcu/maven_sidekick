@@ -1,10 +1,9 @@
 #!/usr/bin/env run-cargo-script
-// cargo-deps: time="0.1.25", xml-rs = "0.7", xml5ever = "0.1.3", tendril = "0.1.3", walkdir = "2"
+// cargo-deps: xml-rs = "0.7", xml5ever = "0.1.3", tendril = "0.1.3", walkdir = "2"
 // You can also leave off the version number, in which case, it's assumed
 // to be "*".  Also, the `cargo-deps` comment *must* be a single-line
 // comment, and it *must* be the first thing in the file, after the
 // hashbang.
-extern crate time;
 extern crate walkdir;
 extern crate xml;
 
