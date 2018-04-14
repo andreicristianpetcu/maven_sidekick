@@ -156,6 +156,10 @@ fn main() {
 }
 
 #[cfg(test)]
+
+#[macro_use]
+extern crate pretty_assertions;
+
 mod tests {
     use super::*;
 
@@ -236,14 +240,19 @@ mod tests {
     #[test]
     #[ignore]
     fn it_checks_same_project_version() {
+        let project = build_project_with_version(Some(String::from("${project.version}")));
+
+        assert_eq!(true, project.is_same_project_version());
+    }
+
+    fn build_project_with_version(version: Option<String>) -> MavenProject {
         let project = MavenProject {
             artifact_id: String::new(),
             group_id: String::new(),
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
-            version: Some(String::from("${project.version}"))
+            version
         };
-
-        assert_eq!(true, project.is_same_project_version());
+        project
     }
 }
