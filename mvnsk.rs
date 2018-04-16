@@ -16,7 +16,6 @@ use clap::{App, Arg};
 struct MavenProject {
     artifact_id: String,
     group_id: String,
-    #[allow(dead_code)]
     parent_group_id: Option<String>,
     version: Option<String>,
     dependencies: Vec<MavenProject>,
@@ -41,18 +40,21 @@ impl MavenProject {
         }
     }
 
-    #[allow(dead_code)]
     fn get_parent_id(&self) -> String {
         if !self.group_id.is_empty() {
-            return self.group_id.to_string()
+            return self.group_id.to_string();
         } else if let Some(ref parent_group_id) = self.parent_group_id {
-            return parent_group_id.to_string()
+            return parent_group_id.to_string();
         }
         String::new()
     }
+
+    fn get_full_project_name(&self) -> String {
+        format!("{}:{}", self.get_parent_id(), self.artifact_id)
+    }
 }
 
-fn get_project(file_path: &str) -> MavenProject {
+fn get_project(file_path: String) -> MavenProject {
     let file = File::open(file_path).unwrap();
     let file = BufReader::new(file);
 
@@ -129,21 +131,16 @@ fn get_all_pom_files_from_cwd() -> Vec<String> {
 fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
     let pom_files = get_all_pom_files_from_cwd();
     for pom_file in &pom_files {
-        let project = get_project(&pom_file);
-        let project_full_name = format!("{}:{}", project.group_id, &project.artifact_id);
-        if project_full_name.eq(&project_to_find) {
+        let project = get_project(pom_file.to_string());
+        if project.get_full_project_name().eq(&project_to_find) {
             return Ok(pom_file.to_string());
         }
     }
-    Err(format!("Project not found {} in files {} \n", project_to_find, &pom_files.join("\n")))
+    Err(format!("Project not found {} in files {}", project_to_find, &pom_files.join(", ")))
 }
 
-#[allow(dead_code)]
 fn gets_nested_dependencies(project: &MavenProject) -> String {
-    let mut dependencies: String = String::new();
-    dependencies.push_str(project.group_id.as_str());
-    dependencies.push_str(":");
-    dependencies.push_str(project.artifact_id.as_str());
+    let mut dependencies: String = project.get_full_project_name();
     for dependency in &project.dependencies {
         if dependency.is_same_project_version() {
             dependencies.push_str(",");
@@ -173,8 +170,12 @@ fn main() {
         .value_of("project")
         .unwrap_or("org.apache.camel:camel-core");
 
-    let project_list = get_pom_file_from_artifact(project).unwrap();
-    println!("{}", project_list);
+    let pom_file = get_pom_file_from_artifact(project).unwrap();
+    let project = get_project(pom_file);
+
+    let dependencies = gets_nested_dependencies(&project);
+
+    println!("{}", dependencies);
 }
 
 #[cfg(test)]
@@ -186,25 +187,25 @@ mod tests {
 
     #[test]
     fn it_gets_project_artifact_id() {
-        let project = get_project("test_data/pom.xml");
+        let project = get_project(String::from("test_data/pom.xml"));
         assert_eq!("camel-core", project.artifact_id);
     }
 
     #[test]
     fn it_gets_project_group_id() {
-        let project = get_project("test_data/pom.xml");
+        let project = get_project(String::from("test_data/pom.xml"));
         assert_eq!("org.apache.camel", project.group_id);
     }
 
     #[test]
     fn it_gets_parent_project_group_id() {
-        let project = get_project("test_data/pom.xml");
+        let project = get_project(String::from("test_data/pom.xml"));
         assert_eq!("org.apache.camel", project.parent_group_id.unwrap());
     }
 
     #[test]
     fn it_gets_dependencies_from_dependency_section() {
-        let project = get_project("test_data/pom.xml");
+        let project = get_project(String::from("test_data/pom.xml"));
         let first_dependency = project.dependencies.get(0).unwrap();
 
         assert!(project.dependencies.len() >= 15);
