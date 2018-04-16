@@ -18,7 +18,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug tests",
-            "program": "${workspaceRoot}/target/debug/mvns-5cb9b97e203f3e0a",
+            "program": "${workspaceRoot}/target/debug/mvnsk-0796f5009e5d7df5",
             "env": {},
             "args": [],
             "cwd": "${workspaceRoot}",

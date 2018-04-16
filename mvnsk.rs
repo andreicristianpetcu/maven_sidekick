@@ -38,8 +38,11 @@ impl MavenProject {
 
     #[allow(dead_code)]
     fn is_same_project_version(&self) -> bool {
-        if let Some(ref version_value) = self.version {
-            "${project.version}".eq(version_value)
+        if let &Some(ref version_value) = &self.version {
+            let version_constant = String::from("${project.version}");
+            let equals = version_constant.eq(version_value);
+            println!("\nversion_constant={} version_value={} equals={}", version_constant, version_value, equals);
+            return equals
         } else {
             false
         }
@@ -47,7 +50,7 @@ impl MavenProject {
 }
 
 fn get_project(file_path: &str) -> MavenProject {
-    print!("{0}", file_path);
+    println!("{0}", file_path);
 
     let file = File::open(file_path).unwrap();
     let file = BufReader::new(file);
@@ -136,14 +139,17 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
 }
 
 #[allow(dead_code)]
-fn gets_nested_dependencies(project: MavenProject) -> String {
+fn gets_nested_dependencies(project: &MavenProject) -> String {
     let mut dependencies: String = String::new();
     dependencies.push_str(project.group_id.as_str());
     dependencies.push_str(":");
     dependencies.push_str(project.artifact_id.as_str());
-    for dependency in project.dependencies {
-        dependencies.push_str(",");
-        dependencies.push_str(&gets_nested_dependencies(dependency));
+    for dependency in &project.dependencies {
+        let is_same_project_version: bool = dependency.is_same_project_version();
+        if is_same_project_version {
+            dependencies.push_str(",");
+            dependencies.push_str(&gets_nested_dependencies(dependency));
+        }
     }
 
     dependencies
@@ -235,7 +241,7 @@ mod tests {
             group_id: String::from("com.geography"),
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
-            version: None::<String>,
+            version: Some(String::from("${project.version}")),
         };
         let parent = MavenProject {
             artifact_id: String::from("europe"),
@@ -245,7 +251,7 @@ mod tests {
             version: None::<String>,
         };
 
-        let dependencies = gets_nested_dependencies(parent);
+        let dependencies = gets_nested_dependencies(&parent);
 
         assert_eq!(
             "com.geography:europe,com.geography:switzerland",
@@ -259,7 +265,7 @@ mod tests {
         assert_eq!(true, project.is_same_project_version());
 
         let project = build_project_with_version(Some(String::from("1.2.3")));
-        assert_eq!(true, project.is_same_project_version());
+        assert_eq!(false, project.is_same_project_version());
     }
 
     #[allow(dead_code)]
