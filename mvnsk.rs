@@ -16,10 +16,10 @@ use walkdir::WalkDir;
 use std::env;
 use clap::{App, Arg};
 
-#[allow(dead_code)]
 struct MavenProject {
     artifact_id: String,
     group_id: String,
+    #[allow(dead_code)]
     parent_group_id: Option<String>,
     version: Option<String>,
     dependencies: Vec<MavenProject>,
@@ -36,13 +36,9 @@ impl MavenProject {
         }
     }
 
-    #[allow(dead_code)]
     fn is_same_project_version(&self) -> bool {
-        if let &Some(ref version_value) = &self.version {
-            let version_constant = String::from("${project.version}");
-            let equals = version_constant.eq(version_value);
-            println!("\nversion_constant={} version_value={} equals={}", version_constant, version_value, equals);
-            return equals
+        if let Some(ref version_value) = self.version {
+            String::from("${project.version}").eq(version_value)
         } else {
             false
         }
@@ -145,8 +141,7 @@ fn gets_nested_dependencies(project: &MavenProject) -> String {
     dependencies.push_str(":");
     dependencies.push_str(project.artifact_id.as_str());
     for dependency in &project.dependencies {
-        let is_same_project_version: bool = dependency.is_same_project_version();
-        if is_same_project_version {
+        if dependency.is_same_project_version() {
             dependencies.push_str(",");
             dependencies.push_str(&gets_nested_dependencies(dependency));
         }
