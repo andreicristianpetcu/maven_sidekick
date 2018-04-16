@@ -13,6 +13,7 @@ use walkdir::WalkDir;
 use std::env;
 use clap::{App, Arg};
 
+#[derive(Debug)]
 struct MavenProject {
     artifact_id: String,
     group_id: String,
@@ -22,13 +23,13 @@ struct MavenProject {
 }
 
 impl MavenProject {
-    fn new(artifact_id: String, group_id: String) -> Self {
+    fn new(artifact_id: String, group_id: String, version: String) -> Self {
         MavenProject {
             artifact_id,
             group_id,
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
-            version: None::<String>,
+            version: Some(version),
         }
     }
 
@@ -63,6 +64,7 @@ fn get_project(file_path: String) -> MavenProject {
     let mut group_id: String = String::new();
     let mut dependency_artifact_id: String = String::new();
     let mut dependency_group_id: String = String::new();
+    let mut dependency_version: String = String::new();
     let mut parent_group_id: Option<String> = Option::None;
     let mut dependencies: Vec<MavenProject> = Vec::new();
     let mut tag_hierarchy: Vec<String> = Vec::new();
@@ -77,7 +79,11 @@ fn get_project(file_path: String) -> MavenProject {
                     dependencies.push(MavenProject::new(
                         dependency_artifact_id.clone(),
                         dependency_group_id.clone(),
-                    ))
+                        dependency_version.clone()
+                    ));
+                    dependency_artifact_id.clear();
+                    dependency_group_id.clear();
+                    dependency_version.clear();
                 }
                 tag_hierarchy.pop();
             }
@@ -87,6 +93,7 @@ fn get_project(file_path: String) -> MavenProject {
                 "/project/parent/groupId" => parent_group_id = Option::from(data),
                 "/project/dependencies/dependency/artifactId" => dependency_artifact_id = data,
                 "/project/dependencies/dependency/groupId" => dependency_group_id = data,
+                "/project/dependencies/dependency/version" => dependency_version = data,
                 _ => {}
             },
             Err(e) => {
@@ -142,6 +149,7 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
 fn gets_nested_dependencies(project: &MavenProject) -> String {
     let mut dependencies: String = project.get_full_project_name();
     for dependency in &project.dependencies {
+        println!("dependency {:?}", dependency);
         if dependency.is_same_project_version() {
             dependencies.push_str(",");
             dependencies.push_str(&gets_nested_dependencies(dependency));
