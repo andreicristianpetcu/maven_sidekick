@@ -38,7 +38,11 @@ impl MavenProject {
 
     #[allow(dead_code)]
     fn is_same_project_version(&self) -> bool {
-        false
+        if let Some(ref version_value) = self.version {
+            "${project.version}".eq(version_value)
+        } else {
+            false
+        }
     }
 }
 
@@ -250,10 +254,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn it_checks_same_project_version() {
         let project = build_project_with_version(Some(String::from("${project.version}")));
+        assert_eq!(true, project.is_same_project_version());
 
+        let project = build_project_with_version(Some(String::from("1.2.3")));
         assert_eq!(true, project.is_same_project_version());
     }
 
