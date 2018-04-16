@@ -6,3 +6,5 @@
 **/*.rs.bk
 .idea/workspace.xml
 .idea/sonarlint
+.settings
+.project
