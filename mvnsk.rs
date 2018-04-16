@@ -1,9 +1,10 @@
 #!/usr/bin/env run-cargo-script
-// cargo-deps: xml-rs = "0.7", xml5ever = "0.1.3", tendril = "0.1.3", walkdir = "2"
+// cargo-deps: xml-rs = "0.7", xml5ever = "0.1.3", tendril = "0.1.3", walkdir = "2", clap = "~2.31"
 // You can also leave off the version number, in which case, it's assumed
 // to be "*".  Also, the `cargo-deps` comment *must* be a single-line
 // comment, and it *must* be the first thing in the file, after the
 // hashbang.
+extern crate clap;
 extern crate walkdir;
 extern crate xml;
 
@@ -13,6 +14,7 @@ use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
 use walkdir::WalkDir;
 use std::env;
+use clap::{App, Arg};
 
 #[allow(dead_code)]
 struct MavenProject {
@@ -30,12 +32,13 @@ impl MavenProject {
             group_id,
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
-            version: None::<String>
+            version: None::<String>,
         }
     }
 
+    #[allow(dead_code)]
     fn is_same_project_version(&self) -> bool {
-        return false;
+        false
     }
 }
 
@@ -72,12 +75,8 @@ fn get_project(file_path: &str) -> MavenProject {
                 "/project/artifactId" => artifact_id = data,
                 "/project/groupId" => group_id = data,
                 "/project/parent/groupId" => parent_group_id = Option::from(data),
-                "/project/dependencies/dependency/artifactId" => {
-                    dependency_artifact_id = data
-                }
-                "/project/dependencies/dependency/groupId" => {
-                    dependency_group_id = data
-                }
+                "/project/dependencies/dependency/artifactId" => dependency_artifact_id = data,
+                "/project/dependencies/dependency/groupId" => dependency_group_id = data,
                 _ => {}
             },
             Err(e) => {
@@ -92,7 +91,7 @@ fn get_project(file_path: &str) -> MavenProject {
         group_id,
         parent_group_id,
         dependencies,
-        version: None::<String>
+        version: None::<String>,
     }
 }
 
@@ -124,11 +123,7 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
     let pom_files = get_all_pom_files_from_cwd();
     for pom_file in pom_files {
         let project = get_project(&pom_file);
-        let project_full_name = format!(
-            "{}:{}",
-            project.group_id,
-            &project.artifact_id
-        );
+        let project_full_name = format!("{}:{}", project.group_id, &project.artifact_id);
         if project_full_name.eq(&project_to_find) {
             return Ok(pom_file);
         }
@@ -151,12 +146,29 @@ fn gets_nested_dependencies(project: MavenProject) -> String {
 }
 
 fn main() {
-    let string = get_pom_file_from_artifact("com.connectis.connectis:broker-eh").unwrap();
-    print!("{}", string);
+    let matches = App::new("Maven Sidekick")
+        .version("v1.0-beta")
+        .author("Andrei Petcu <andrei@ceata.org>")
+        .about("This tool helps you with using maven on large projects")
+        .arg(
+            Arg::with_name("project")
+                .short("p")
+                .long("project")
+                .value_name("org.apache.camel:camel-core")
+                .help("A project name as an groupId:artifactId")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let project = matches
+        .value_of("project")
+        .unwrap_or("org.apache.camel:camel-core");
+
+    let project_list = get_pom_file_from_artifact(project).unwrap();
+    println!("{}", project_list);
 }
 
 #[cfg(test)]
-
 #[macro_use]
 extern crate pretty_assertions;
 
@@ -245,14 +257,14 @@ mod tests {
         assert_eq!(true, project.is_same_project_version());
     }
 
+    #[allow(dead_code)]
     fn build_project_with_version(version: Option<String>) -> MavenProject {
-        let project = MavenProject {
+        MavenProject {
             artifact_id: String::new(),
             group_id: String::new(),
             parent_group_id: None::<String>,
             dependencies: Vec::new(),
-            version
-        };
-        project
+            version,
+        }
     }
 }
