@@ -13,6 +13,33 @@ use walkdir::WalkDir;
 use std::env;
 use clap::{App, Arg};
 
+fn main() {
+    let matches = App::new("Maven Sidekick")
+        .version("v1.0-beta")
+        .author("Andrei Petcu <andrei@ceata.org>")
+        .about("This tool helps you with using maven on large projects")
+        .arg(
+            Arg::with_name("project")
+                .short("p")
+                .long("project")
+                .value_name("org.apache.camel:camel-core")
+                .help("A project name as an groupId:artifactId")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let project = matches
+        .value_of("project")
+        .unwrap_or("org.apache.camel:camel-core");
+
+    let pom_file = get_pom_file_from_artifact(project).unwrap();
+    let project = get_project(pom_file);
+
+    let dependencies = gets_nested_dependencies(&project);
+
+    println!("{}", dependencies);
+}
+
 #[derive(Debug)]
 struct MavenProject {
     artifact_id: String,
@@ -114,7 +141,7 @@ fn get_project(file_path: String) -> MavenProject {
 
 fn to_string(vector: &[String]) -> String {
     let mut result: String = String::new();
-    vector.into_iter().for_each(|item| {
+    vector.iter().for_each(|item| {
         result.push_str("/");
         result.push_str(item);
     });
@@ -149,7 +176,7 @@ fn get_pom_file_from_artifact(project_to_find: &str) -> Result<String, String> {
 fn gets_nested_dependencies(project: &MavenProject) -> String {
     let mut dependencies: String = project.get_full_project_name();
     for dependency in &project.dependencies {
-        println!("dependency {:?}", dependency);
+//        println!("dependency {:?}", dependency);
         if dependency.is_same_project_version() {
             dependencies.push_str(",");
             dependencies.push_str(&gets_nested_dependencies(dependency));
@@ -157,33 +184,6 @@ fn gets_nested_dependencies(project: &MavenProject) -> String {
     }
 
     dependencies
-}
-
-fn main() {
-    let matches = App::new("Maven Sidekick")
-        .version("v1.0-beta")
-        .author("Andrei Petcu <andrei@ceata.org>")
-        .about("This tool helps you with using maven on large projects")
-        .arg(
-            Arg::with_name("project")
-                .short("p")
-                .long("project")
-                .value_name("org.apache.camel:camel-core")
-                .help("A project name as an groupId:artifactId")
-                .takes_value(true),
-        )
-        .get_matches();
-
-    let project = matches
-        .value_of("project")
-        .unwrap_or("org.apache.camel:camel-core");
-
-    let pom_file = get_pom_file_from_artifact(project).unwrap();
-    let project = get_project(pom_file);
-
-    let dependencies = gets_nested_dependencies(&project);
-
-    println!("{}", dependencies);
 }
 
 #[cfg(test)]
